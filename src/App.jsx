@@ -153,7 +153,7 @@ export default function App() {
             </span>
           </div>
           <p style={{ color: '#94a3b8', fontSize: '14px', marginTop: '4px' }}>
-            Visual 2D Floor Plan & Flexible Reservation Portal for Seats, Microscopes, Scales, Sinks, and Drying Ovens
+            Flexible Reservation Portal for Seats, Microscopes, Scales, Sinks, and Drying Ovens
           </p>
         </div>
 
@@ -169,7 +169,7 @@ export default function App() {
 
           <button 
             onClick={() => setIsAdminMode(!isAdminMode)}
-            style={{ padding: '8px 16px', backgroundColor: isAdminMode ? '#78350f' : '#1e293b', color: isAdminMode ? '#fde68a' : '#cbd5e1', border: '1px solid #475569', borderRadius: '8px', cursor: 'pointer', fontSize: '14px' }}
+            style={{ padding: '8px 16px', backgroundColor: isAdminMode ? '#78350f' : '#1e293b', color: isAdminMode ? '#fde68a' : '#cbd5e1', border: '1px solid #475569', cursor: 'pointer', fontSize: '14px' }}
           >
             {isAdminMode ? 'Exit Admin Mode' : 'Admin & Photo Editor'}
           </button>
@@ -217,7 +217,7 @@ export default function App() {
 
           <div style={{ backgroundColor: '#020617', border: '1px solid #1e293b', borderRadius: '16px', padding: '20px' }}>
             <div style={{ borderBottom: '1px solid #1e293b', paddingBottom: '12px', marginBottom: '16px', fontSize: '12px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Floor Plan Blueprint - Room 115 Hodson
+              Equipment Overview - Room 115 Hodson
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px' }}>
@@ -275,7 +275,7 @@ export default function App() {
                   </div>
                 </div>
               ) : (
-                <p style={{ fontSize: '13px', color: '#94a3b8' }}>Select an asset on the floor plan map to edit details.</p>
+                <p style={{ fontSize: '13px', color: '#94a3b8' }}>Select an asset to edit details.</p>
               )}
             </div>
           ) : (
@@ -307,7 +307,6 @@ export default function App() {
                           <input 
                             type="date" 
                             required 
-                            colorScheme="dark"
                             value={startDate} 
                             onChange={(e) => { 
                               setStartDate(e.target.value); 
@@ -374,7 +373,7 @@ export default function App() {
                 </div>
               ) : (
                 <div style={{ textAlign: 'center', color: '#94a3b8', padding: '32px 0' }}>
-                  Select any seat, microscope, scale, sink, or oven on the floor plan map to reserve.
+                  Select any seat, microscope, scale, sink, or oven to reserve.
                 </div>
               )}
             </div>
