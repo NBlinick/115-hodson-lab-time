@@ -3,6 +3,15 @@ import React, { useState, useEffect } from 'react';
 const GOOGLE_CALENDAR_ID = "umn.edu_utg0nurqmmirg5udgvi2dim1gs@group.calendar.google.com";
 const CALENDAR_EMBED_URL = "https://calendar.google.com/calendar/embed?src=umn.edu_utg0nurqmmirg5udgvi2dim1gs%40group.calendar.google.com&ctz=America%2FChicago";
 
+// Custom display order mapping
+const CATEGORY_ORDER = {
+  'microscope': 1,
+  'scale': 2,
+  'seat': 3,
+  'drying oven': 4,
+  'sink': 5
+};
+
 const DEFAULT_ASSETS = [
   { id: 'bench-1a', name: 'Lab Bench 1A - Seat', brand: 'Generic', model: 'Standard Bench', type: 'seat', location: 'Bench Row 1', status: 'available', notionUrl: '', imageUrl: '' },
   { id: 'bench-1b', name: 'Lab Bench 1B - Seat', brand: 'Generic', model: 'Standard Bench', type: 'seat', location: 'Bench Row 1', status: 'available', notionUrl: '', imageUrl: '' },
@@ -16,22 +25,13 @@ const DEFAULT_ASSETS = [
   { id: 'oven-02', name: 'High-Temp Forced Air Drying Oven #2', brand: 'Binder', model: 'FD 115', type: 'drying oven', location: 'East Prep Wall', status: 'available', notionUrl: '', imageUrl: '' }
 ];
 
-// Custom display order mapping
-const CATEGORY_ORDER = {
-  'microscope': 1,
-  'scale': 2,
-  'seat': 3,
-  'drying oven': 4,
-  'sink': 5
-};
-
 const CATEGORIES = [
   { id: 'all', label: 'All Equipment' },
   { id: 'microscope', label: 'Microscopes' },
   { id: 'scale', label: 'Scales' },
-  { id: 'sink', label: 'Sinks' },
+  { id: 'seat', label: 'Seats' },
   { id: 'drying oven', label: 'Drying Ovens' },
-  { id: 'seat', label: 'Seats' }
+  { id: 'sink', label: 'Sinks' }
 ];
 
 export default function App() {
@@ -115,14 +115,21 @@ export default function App() {
     fetchNotionData();
   }, []);
 
-  const filteredAssets = assets.filter((asset) => {
-    const matchesFilter = activeFilter === 'all' || asset.type === activeFilter;
-    const matchesSearch = asset.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          asset.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          (asset.brand && asset.brand.toLowerCase().includes(searchQuery.toLowerCase())) ||
-                          (asset.model && asset.model.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesFilter && matchesSearch;
-  });
+  // Filter and sort by category priority (Microscopes -> Scales -> Seats -> Drying Ovens -> Sinks)
+  const filteredAssets = assets
+    .filter((asset) => {
+      const matchesFilter = activeFilter === 'all' || asset.type === activeFilter;
+      const matchesSearch = asset.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                            asset.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            (asset.brand && asset.brand.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                            (asset.model && asset.model.toLowerCase().includes(searchQuery.toLowerCase()));
+      return matchesFilter && matchesSearch;
+    })
+    .sort((a, b) => {
+      const orderA = CATEGORY_ORDER[a.type] || 99;
+      const orderB = CATEGORY_ORDER[b.type] || 99;
+      return orderA - orderB;
+    });
 
   const handleBookingSubmit = (e) => {
     e.preventDefault();
