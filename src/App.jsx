@@ -1,9 +1,4 @@
-cat << 'EOF' > src/App.jsx
 import React, { useState, useEffect } from 'react';
-import { 
-  Calendar, Clock, User, Mail, FileText, CheckCircle2, 
-  ExternalLink, Settings, Search, AlertTriangle, Wrench, Tag, Info
-} from 'lucide-react';
 
 const GOOGLE_CALENDAR_ID = "umn.edu_utg0nurqmmirg5udgvi2dim1gs@group.calendar.google.com";
 const CALENDAR_EMBED_URL = "https://calendar.google.com/calendar/embed?src=umn.edu_utg0nurqmmirg5udgvi2dim1gs%40group.calendar.google.com&ctz=America%2FChicago";
@@ -28,7 +23,7 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [notionConnected, setNotionConnected] = useState(false);
-  const [notionErrorMsg, setNotionErrorMsg] = useState('');
+  const [notionStatusMsg, setNotionStatusMsg] = useState('Checking Notion connection...');
 
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -41,7 +36,7 @@ export default function App() {
   const [calendarUrl, setCalendarUrl] = useState('');
 
   useEffect(() => {
-    async function loadNotionData() {
+    async function fetchNotionData() {
       try {
         const res = await fetch('/api/notion');
         const data = await res.json();
@@ -58,11 +53,10 @@ export default function App() {
             });
 
             let photoUrl = '';
-            const photoPropKey = Object.keys(props).find(k => k.toLowerCase() === 'photo' || k.toLowerCase() === 'image');
-            if (photoPropKey && props[photoPropKey]?.files?.[0]) {
-              const fileObj = props[photoPropKey].files[0];
-              if (fileObj.type === 'file') photoUrl = fileObj.file?.url || '';
-              else if (fileObj.type === 'external') photoUrl = fileObj.external?.url || '';
+            const photoKey = Object.keys(props).find(k => k.toLowerCase() === 'photo' || k.toLowerCase() === 'image');
+            if (photoKey && props[photoKey]?.files?.[0]) {
+              const fileObj = props[photoKey].files[0];
+              photoUrl = fileObj.file?.url || fileObj.external?.url || '';
             }
 
             const category = props['Category']?.select?.name?.toLowerCase() || props['Type']?.select?.name?.toLowerCase() || 'seat';
@@ -85,15 +79,15 @@ export default function App() {
 
           setAssets(parsed);
           setNotionConnected(true);
-          setNotionErrorMsg('');
+          setNotionStatusMsg('Connected to Notion Database');
         } else {
-          setNotionErrorMsg(data.message || 'Displaying local equipment database.');
+          setNotionStatusMsg(data.message || 'Notion proxy returned standard fallback data.');
         }
       } catch (err) {
-        setNotionErrorMsg('Displaying local equipment database.');
+        setNotionStatusMsg('Local dev mode: serverless /api/notion runs when published to Vercel.');
       }
     }
-    loadNotionData();
+    fetchNotionData();
   }, []);
 
   const filteredAssets = assets.filter((asset) => {
@@ -132,151 +126,102 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 font-sans p-4 sm:p-8">
-      <header className="max-w-7xl mx-auto mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-6">
+    <div style={{ minHeight: '100vh', backgroundColor: '#0f172a', color: '#f8fafc', fontFamily: 'sans-serif', padding: '24px' }}>
+      <header style={{ maxWidth: '1200px', margin: '0 auto 24px auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #334155', paddingBottom: '16px' }}>
         <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold text-white tracking-tight">115 Hodson Lab Time</h1>
-            <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${
-              notionConnected 
-                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
-                : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-            }`}>
-              {notionConnected ? 'Notion Live Sync' : 'Active System'}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <h1 style={{ fontSize: '28px', fontWeight: 'bold', margin: 0, color: '#ffffff' }}>115 Hodson Lab Time</h1>
+            <span style={{ padding: '4px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: '600', border: notionConnected ? '1px solid #059669' : '1px solid #d97706', backgroundColor: notionConnected ? '#064e3b' : '#78350f', color: notionConnected ? '#34d399' : '#fde68a' }}>
+              {notionConnected ? 'Live Notion Sync' : 'Default Asset Mode'}
             </span>
           </div>
-          <p className="text-slate-400 text-sm mt-1">
+          <p style={{ color: '#94a3b8', fontSize: '14px', marginTop: '4px' }}>
             Visual 2D Floor Plan & Multi-Day Reservation Portal for Seats, Microscopes, Scales, Sinks, and Wet Bays
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div style={{ display: 'flex', gap: '12px' }}>
           <a 
             href={CALENDAR_EMBED_URL}
             target="_blank"
             rel="noreferrer"
-            className="px-4 py-2 bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 rounded-lg text-sm font-medium transition flex items-center gap-2"
+            style={{ padding: '8px 16px', backgroundColor: '#1e293b', color: '#cbd5e1', border: '1px solid #475569', borderRadius: '8px', textDecoration: 'none', fontSize: '14px' }}
           >
-            <Calendar className="w-4 h-4 text-blue-400" /> Live UMN Calendar
+            Live UMN Calendar
           </a>
 
           <button 
             onClick={() => setIsAdminMode(!isAdminMode)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 border ${
-              isAdminMode 
-                ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' 
-                : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
-            }`}
+            style={{ padding: '8px 16px', backgroundColor: isAdminMode ? '#78350f' : '#1e293b', color: isAdminMode ? '#fde68a' : '#cbd5e1', border: '1px solid #475569', borderRadius: '8px', cursor: 'pointer', fontSize: '14px' }}
           >
-            <Settings className="w-4 h-4" />
             {isAdminMode ? 'Exit Admin Mode' : 'Admin & Photo Editor'}
           </button>
         </div>
       </header>
 
-      {notionErrorMsg && !notionConnected && (
-        <div className="max-w-7xl mx-auto mb-6 p-4 bg-slate-800/60 border border-slate-700/80 rounded-xl flex items-start gap-3 text-slate-300 text-xs">
-          <Info className="w-5 h-5 shrink-0 text-blue-400 mt-0.5" />
-          <div>
-            <span className="font-bold">System Note:</span> {notionErrorMsg}
-          </div>
+      {!notionConnected && (
+        <div style={{ maxWidth: '1200px', margin: '0 auto 16px auto', padding: '12px 16px', backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', fontSize: '12px', color: '#94a3b8' }}>
+          <strong>Sync Status:</strong> {notionStatusMsg}
         </div>
       )}
 
-      <main className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <section className="lg:col-span-2 space-y-6">
-          <div className="bg-slate-800/80 border border-slate-700/60 p-4 rounded-xl flex flex-col sm:flex-row gap-4 justify-between items-center">
-            <div className="relative w-full sm:w-64">
-              <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
-              <input 
-                id="search-equipment-input"
-                name="searchEquipment"
-                type="text"
-                placeholder="Search equipment, brand, or model..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-9 pr-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
-              />
-            </div>
+      <main style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
+        <section>
+          <div style={{ backgroundColor: '#1e293b', padding: '16px', borderRadius: '12px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between' }}>
+            <input 
+              type="text"
+              placeholder="Search equipment, brand, or model..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ width: '240px', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '8px 12px', color: '#f8fafc' }}
+            />
 
-            <div className="flex flex-wrap gap-1 w-full sm:w-auto">
+            <div style={{ display: 'flex', gap: '6px' }}>
               {['all', 'seat', 'microscope', 'scale', 'sink'].map((type) => (
                 <button
                   key={type}
                   onClick={() => setActiveFilter(type)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition ${
-                    activeFilter === type 
-                      ? 'bg-blue-600 text-white' 
-                      : 'bg-slate-900/60 text-slate-400 hover:text-slate-200'
-                  }`}
+                  style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '12px', border: 'none', cursor: 'pointer', backgroundColor: activeFilter === type ? '#2563eb' : '#0f172a', color: '#ffffff', textTransform: 'capitalize' }}
                 >
-                  {type === 'scale' ? 'Weighing Scales' : type + 's'}
+                  {type === 'scale' ? 'Scales' : type + 's'}
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="bg-slate-950 border border-slate-800 rounded-2xl p-6 relative min-h-[500px]">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3 mb-6">
-              <span className="text-xs font-mono uppercase tracking-wider text-slate-500">
-                Floor Plan Blueprint - Room 115 Hodson
-              </span>
-              <div className="flex items-center gap-4 text-xs text-slate-400">
-                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Available</span>
-                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Selected</span>
-              </div>
+          <div style={{ backgroundColor: '#020617', border: '1px solid #1e293b', borderRadius: '16px', padding: '20px' }}>
+            <div style={{ borderBottom: '1px solid #1e293b', paddingBottom: '12px', marginBottom: '16px', fontSize: '12px', color: '#64748b', textTransform: 'uppercase' }}>
+              Floor Plan Blueprint - Room 115 Hodson
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px' }}>
               {filteredAssets.map((asset) => {
                 const isSelected = selectedAsset?.id === asset.id;
-                const isNotionLinked = asset.type === 'microscope' || asset.type === 'scale';
-
                 return (
                   <div
                     key={asset.id}
                     onClick={() => { setSelectedAsset(asset); setBookingSuccess(false); }}
-                    className={`group relative p-4 rounded-xl border transition cursor-pointer flex flex-col justify-between ${
-                      isSelected 
-                        ? 'bg-blue-950/60 border-blue-500 shadow-lg shadow-blue-500/10' 
-                        : 'bg-slate-900/90 border-slate-800 hover:border-slate-700 hover:bg-slate-900'
-                    }`}
+                    style={{
+                      padding: '16px',
+                      borderRadius: '12px',
+                      border: isSelected ? '2px solid #3b82f6' : '1px solid #1e293b',
+                      backgroundColor: isSelected ? '#172554' : '#0f172a',
+                      cursor: 'pointer'
+                    }}
                   >
-                    <div>
-                      {asset.imageUrl ? (
-                        <img 
-                          src={asset.imageUrl} 
-                          alt={asset.name} 
-                          className="w-full h-24 object-cover rounded-lg mb-3 border border-slate-800"
-                        />
-                      ) : (
-                        <div className="w-full h-20 bg-slate-950/80 rounded-lg mb-3 flex items-center justify-center border border-slate-800/80">
-                          <span className="text-slate-600 text-xs uppercase font-mono">{asset.type}</span>
-                        </div>
-                      )}
+                    {asset.imageUrl ? (
+                      <img src={asset.imageUrl} alt={asset.name} style={{ width: '100%', height: '80px', objectFit: 'cover', borderRadius: '6px', marginBottom: '8px' }} />
+                    ) : (
+                      <div style={{ width: '100%', height: '60px', backgroundColor: '#020617', borderRadius: '6px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: '#475569' }}>
+                        {asset.type.toUpperCase()}
+                      </div>
+                    )}
 
-                      <h3 className="font-semibold text-sm text-slate-100 group-hover:text-blue-400 transition">
-                        {asset.name}
-                      </h3>
-                      
-                      {(asset.brand || asset.model) && (
-                        <p className="text-[11px] font-mono text-blue-300 mt-1 flex items-center gap-1">
-                          <Tag className="w-3 h-3 shrink-0" />
-                          <span>{[asset.brand, asset.model].filter(Boolean).join(' · ')}</span>
-                        </p>
-                      )}
-
-                      <p className="text-xs text-slate-400 mt-1">{asset.location}</p>
-                    </div>
-
-                    <div className="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs">
-                      <span className="text-emerald-400 font-medium">Available</span>
-                      {isNotionLinked && (
-                        <span className="text-slate-500 flex items-center gap-1 text-[10px]" title="Linked to Notion Maintenance Log">
-                          <ExternalLink className="w-3 h-3" /> Notion Log
-                        </span>
-                      )}
-                    </div>
+                    <div style={{ fontWeight: '600', fontSize: '14px', color: '#f8fafc' }}>{asset.name}</div>
+                    {(asset.brand || asset.model) && (
+                      <div style={{ fontSize: '11px', color: '#93c5fd', marginTop: '4px' }}>{[asset.brand, asset.model].filter(Boolean).join(' · ')}</div>
+                    )}
+                    <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>{asset.location}</div>
                   </div>
                 );
               })}
@@ -284,259 +229,77 @@ export default function App() {
           </div>
         </section>
 
-        <section className="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-6 h-fit sticky top-8">
+        <section style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '16px', padding: '20px', height: 'fit-content' }}>
           {isAdminMode ? (
-            <div className="space-y-6">
-              <div className="border-b border-slate-700 pb-4">
-                <h2 className="text-lg font-bold text-amber-400 flex items-center gap-2">
-                  <Wrench className="w-5 h-5" /> Admin Asset & Photo Editor
-                </h2>
-              </div>
-
+            <div>
+              <h2 style={{ fontSize: '16px', fontWeight: 'bold', color: '#fbbf24', marginBottom: '16px' }}>Admin Asset & Photo Editor</h2>
               {selectedAsset ? (
-                <div className="space-y-4">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div>
-                    <label htmlFor="admin-asset-name" className="block text-xs font-semibold text-slate-300 mb-1">Equipment Name</label>
-                    <input 
-                      id="admin-asset-name"
-                      name="adminAssetName"
-                      type="text"
-                      value={selectedAsset.name}
-                      onChange={(e) => handleAssetUpdate(selectedAsset.id, 'name', e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-slate-200"
-                    />
+                    <label style={{ display: 'block', fontSize: '12px', color: '#cbd5e1', marginBottom: '4px' }}>Name</label>
+                    <input type="text" value={selectedAsset.name} onChange={(e) => handleAssetUpdate(selectedAsset.id, 'name', e.target.value)} style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '8px', color: '#fff' }} />
                   </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label htmlFor="admin-asset-brand" className="block text-xs font-semibold text-slate-300 mb-1">Brand</label>
-                      <input 
-                        id="admin-asset-brand"
-                        name="adminAssetBrand"
-                        type="text"
-                        value={selectedAsset.brand || ''}
-                        onChange={(e) => handleAssetUpdate(selectedAsset.id, 'brand', e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-slate-200"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="admin-asset-model" className="block text-xs font-semibold text-slate-300 mb-1">Model</label>
-                      <input 
-                        id="admin-asset-model"
-                        name="adminAssetModel"
-                        type="text"
-                        value={selectedAsset.model || ''}
-                        onChange={(e) => handleAssetUpdate(selectedAsset.id, 'model', e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-slate-200"
-                      />
-                    </div>
-                  </div>
-
                   <div>
-                    <label htmlFor="admin-asset-location" className="block text-xs font-semibold text-slate-300 mb-1">Location / Bench Station</label>
-                    <input 
-                      id="admin-asset-location"
-                      name="adminAssetLocation"
-                      type="text"
-                      value={selectedAsset.location}
-                      onChange={(e) => handleAssetUpdate(selectedAsset.id, 'location', e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-slate-200"
-                    />
+                    <label style={{ display: 'block', fontSize: '12px', color: '#cbd5e1', marginBottom: '4px' }}>Image URL</label>
+                    <input type="text" placeholder="https://..." value={selectedAsset.imageUrl || ''} onChange={(e) => handleAssetUpdate(selectedAsset.id, 'imageUrl', e.target.value)} style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '8px', color: '#fff' }} />
                   </div>
-
                   <div>
-                    <label htmlFor="admin-asset-image" className="block text-xs font-semibold text-slate-300 mb-1">Image URL / Local Photo Link</label>
-                    <input 
-                      id="admin-asset-image"
-                      name="adminAssetImage"
-                      type="text"
-                      placeholder="https://..."
-                      value={selectedAsset.imageUrl || ''}
-                      onChange={(e) => handleAssetUpdate(selectedAsset.id, 'imageUrl', e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-slate-200"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="admin-asset-notion" className="block text-xs font-semibold text-slate-300 mb-1">Notion Maintenance Page URL</label>
-                    <input 
-                      id="admin-asset-notion"
-                      name="adminAssetNotion"
-                      type="text"
-                      placeholder="https://notion.so/..."
-                      value={selectedAsset.notionUrl || ''}
-                      onChange={(e) => handleAssetUpdate(selectedAsset.id, 'notionUrl', e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-slate-200"
-                    />
+                    <label style={{ display: 'block', fontSize: '12px', color: '#cbd5e1', marginBottom: '4px' }}>Notion Maintenance Link</label>
+                    <input type="text" placeholder="https://notion.so/..." value={selectedAsset.notionUrl || ''} onChange={(e) => handleAssetUpdate(selectedAsset.id, 'notionUrl', e.target.value)} style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '8px', color: '#fff' }} />
                   </div>
                 </div>
               ) : (
-                <p className="text-sm text-slate-400 italic">Select an asset on the floor plan map to edit its photo and details.</p>
+                <p style={{ fontSize: '13px', color: '#94a3b8' }}>Select an asset on the floor plan map to edit details.</p>
               )}
             </div>
           ) : (
             <div>
               {selectedAsset ? (
-                <div className="space-y-6">
-                  <div>
-                    <span className="text-xs font-mono uppercase text-blue-400 font-semibold">Reserve Station</span>
-                    <h2 className="text-xl font-bold text-white mt-1">{selectedAsset.name}</h2>
-                    
-                    {(selectedAsset.brand || selectedAsset.model) && (
-                      <p className="text-xs font-mono text-blue-300 mt-1">
-                        {[selectedAsset.brand, selectedAsset.model].filter(Boolean).join(' · ')}
-                      </p>
-                    )}
+                <div>
+                  <h2 style={{ fontSize: '18px', fontWeight: 'bold', margin: '0 0 4px 0' }}>{selectedAsset.name}</h2>
+                  <p style={{ fontSize: '12px', color: '#94a3b8', margin: '0 0 16px 0' }}>{selectedAsset.location}</p>
 
-                    <p className="text-xs text-slate-400 mt-1">{selectedAsset.location}</p>
-
-                    {(selectedAsset.type === 'microscope' || selectedAsset.type === 'scale') && (
-                      <div className="mt-4 p-3 bg-slate-900/80 border border-slate-700/80 rounded-xl flex items-center justify-between">
-                        <span className="text-xs text-slate-300 font-medium">Maintenance Log</span>
-                        <a 
-                          href={selectedAsset.notionUrl || 'https://notion.so'}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-xs text-blue-400 hover:underline flex items-center gap-1"
-                        >
-                          View in Notion <ExternalLink className="w-3 h-3" />
-                        </a>
-                      </div>
-                    )}
-                  </div>
+                  {(selectedAsset.type === 'microscope' || selectedAsset.type === 'scale') && (
+                    <div style={{ padding: '10px', backgroundColor: '#0f172a', borderRadius: '8px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '12px', color: '#cbd5e1' }}>Maintenance Records</span>
+                      <a href={selectedAsset.notionUrl || 'https://notion.so'} target="_blank" rel="noreferrer" style={{ fontSize: '12px', color: '#60a5fa', textDecoration: 'underline' }}>View in Notion</a>
+                    </div>
+                  )}
 
                   {bookingSuccess ? (
-                    <div className="bg-emerald-950/60 border border-emerald-500/40 p-5 rounded-xl space-y-4">
-                      <div className="flex items-center gap-2 text-emerald-400 font-semibold text-sm">
-                        <CheckCircle2 className="w-5 h-5" /> Reservation Details Prepared!
-                      </div>
-                      <p className="text-xs text-slate-300">
-                        Click below to post this checkout directly to the <strong className="text-white">115 Hodson Lab Time</strong> Google Calendar:
-                      </p>
-                      <a 
-                        href={calendarUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="block w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-center rounded-lg text-sm transition shadow-lg"
-                      >
+                    <div style={{ backgroundColor: '#064e3b', border: '1px solid #059669', padding: '16px', borderRadius: '8px' }}>
+                      <div style={{ color: '#34d399', fontWeight: 'bold', marginBottom: '8px' }}>Reservation Details Prepared!</div>
+                      <a href={calendarUrl} target="_blank" rel="noreferrer" style={{ display: 'block', textAlign: 'center', backgroundColor: '#059669', color: '#fff', padding: '10px', borderRadius: '6px', textDecoration: 'none', fontWeight: 'bold' }}>
                         Add to 115 Hodson Lab Time Calendar
                       </a>
                     </div>
                   ) : (
-                    <form onSubmit={handleBookingSubmit} className="space-y-4">
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label htmlFor="start-date" className="block text-xs font-semibold text-slate-300 mb-1">Start Date</label>
-                          <input 
-                            id="start-date"
-                            name="startDate"
-                            type="date"
-                            required
-                            value={startDate}
-                            onChange={(e) => {
-                              setStartDate(e.target.value);
-                              if (!endDate || endDate < e.target.value) setEndDate(e.target.value);
-                            }}
-                            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-slate-200 [color-scheme:dark]"
-                          />
-                        </div>
-
-                        <div>
-                          <label htmlFor="end-date" className="block text-xs font-semibold text-slate-300 mb-1">End Date</label>
-                          <input 
-                            id="end-date"
-                            name="endDate"
-                            type="date"
-                            required
-                            min={startDate}
-                            value={endDate}
-                            onChange={(e) => setEndDate(e.target.value)}
-                            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-slate-200 [color-scheme:dark]"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label htmlFor="start-time" className="block text-xs font-semibold text-slate-300 mb-1">Start Time</label>
-                          <input 
-                            id="start-time"
-                            name="startTime"
-                            type="time"
-                            required
-                            value={startTime}
-                            onChange={(e) => setStartTime(e.target.value)}
-                            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-slate-200 [color-scheme:dark]"
-                          />
-                        </div>
-                        <div>
-                          <label htmlFor="end-time" className="block text-xs font-semibold text-slate-300 mb-1">End Time</label>
-                          <input 
-                            id="end-time"
-                            name="endTime"
-                            type="time"
-                            required
-                            value={endTime}
-                            onChange={(e) => setEndTime(e.target.value)}
-                            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-slate-200 [color-scheme:dark]"
-                          />
-                        </div>
-                      </div>
-
+                    <form onSubmit={handleBookingSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       <div>
-                        <label htmlFor="user-name" className="block text-xs font-semibold text-slate-300 mb-1">Researcher Name</label>
-                        <input 
-                          id="user-name"
-                          name="userName"
-                          type="text"
-                          required
-                          placeholder="Jane Doe"
-                          value={userName}
-                          onChange={(e) => setUserName(e.target.value)}
-                          className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-slate-200"
-                        />
+                        <label style={{ display: 'block', fontSize: '12px', color: '#cbd5e1', marginBottom: '4px' }}>Start Date</label>
+                        <input type="date" required value={startDate} onChange={(e) => { setStartDate(e.target.value); if (!endDate || endDate < e.target.value) setEndDate(e.target.value); }} style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '8px', color: '#fff' }} />
                       </div>
-
                       <div>
-                        <label htmlFor="user-email" className="block text-xs font-semibold text-slate-300 mb-1">Contact Email</label>
-                        <input 
-                          id="user-email"
-                          name="userEmail"
-                          type="email"
-                          required
-                          placeholder="jane@university.edu"
-                          value={userEmail}
-                          onChange={(e) => setUserEmail(e.target.value)}
-                          className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-slate-200"
-                        />
+                        <label style={{ display: 'block', fontSize: '12px', color: '#cbd5e1', marginBottom: '4px' }}>End Date</label>
+                        <input type="date" required min={startDate} value={endDate} onChange={(e) => setEndDate(e.target.value)} style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '8px', color: '#fff' }} />
                       </div>
-
                       <div>
-                        <label htmlFor="user-notes" className="block text-xs font-semibold text-slate-300 mb-1">Project Notes / Protocol</label>
-                        <textarea 
-                          id="user-notes"
-                          name="userNotes"
-                          rows={2}
-                          placeholder="Brief description of research experiment..."
-                          value={notes}
-                          onChange={(e) => setNotes(e.target.value)}
-                          className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-slate-200"
-                        />
+                        <label style={{ display: 'block', fontSize: '12px', color: '#cbd5e1', marginBottom: '4px' }}>Researcher Name</label>
+                        <input type="text" required placeholder="Jane Doe" value={userName} onChange={(e) => setUserName(e.target.value)} style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '8px', color: '#fff' }} />
                       </div>
-
-                      <button 
-                        type="submit"
-                        className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-xl text-sm transition shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2"
-                      >
-                        <Calendar className="w-4 h-4" /> Reserve Multi-Day Block
+                      <div>
+                        <label style={{ display: 'block', fontSize: '12px', color: '#cbd5e1', marginBottom: '4px' }}>Contact Email</label>
+                        <input type="email" required placeholder="jane@university.edu" value={userEmail} onChange={(e) => setUserEmail(e.target.value)} style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '8px', color: '#fff' }} />
+                      </div>
+                      <button type="submit" style={{ width: '100%', padding: '12px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', marginTop: '8px' }}>
+                        Reserve Multi-Day Block
                       </button>
                     </form>
                   )}
                 </div>
               ) : (
-                <div className="text-center py-12 text-slate-400 space-y-3">
-                  <Info className="w-8 h-8 mx-auto text-slate-600" />
-                  <p className="text-sm font-medium">Select any seat, microscope, scale, or sink on the floor plan to make a reservation.</p>
+                <div style={{ textAlign: 'center', color: '#94a3b8', padding: '32px 0' }}>
+                  Select any seat, microscope, scale, or sink on the floor plan map to reserve.
                 </div>
               )}
             </div>
@@ -546,4 +309,3 @@ export default function App() {
     </div>
   );
 }
-EOF
