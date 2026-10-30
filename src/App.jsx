@@ -16,6 +16,15 @@ const DEFAULT_ASSETS = [
   { id: 'oven-02', name: 'High-Temp Forced Air Drying Oven #2', brand: 'Binder', model: 'FD 115', type: 'drying oven', location: 'East Prep Wall', status: 'available', notionUrl: '', imageUrl: '' }
 ];
 
+// Custom display order mapping
+const CATEGORY_ORDER = {
+  'microscope': 1,
+  'scale': 2,
+  'seat': 3,
+  'drying oven': 4,
+  'sink': 5
+};
+
 const CATEGORIES = [
   { id: 'all', label: 'All Equipment' },
   { id: 'microscope', label: 'Microscopes' },
