@@ -1,12 +1,9 @@
+cat << 'EOF' > src/App.jsx
 import React, { useState, useEffect } from 'react';
 import { 
   Calendar, Clock, User, Mail, FileText, CheckCircle2, 
-  ExternalLink, Settings, Plus, Image as ImageIcon, Search,
-  Filter, Info, AlertTriangle, ShieldCheck, Wrench, RefreshCw, Tag, CalendarRange
+  ExternalLink, Settings, Search, AlertTriangle, Wrench, Tag, CalendarRange, Info
 } from 'lucide-react';
-
-const NOTION_KEY = import.meta.env.VITE_NOTION_API_KEY || import.meta.env.NOTION_API_KEY;
-const DATABASE_ID = import.meta.env.VITE_NOTION_DATABASE_ID;
 
 const GOOGLE_CALENDAR_ID = "umn.edu_utg0nurqmmirg5udgvi2dim1gs@group.calendar.google.com";
 const CALENDAR_EMBED_URL = "https://calendar.google.com/calendar/embed?src=umn.edu_utg0nurqmmirg5udgvi2dim1gs%40group.calendar.google.com&ctz=America%2FChicago";
@@ -45,34 +42,15 @@ export default function App() {
 
   useEffect(() => {
     async function loadNotionData() {
-      if (!DATABASE_ID) {
-        setNotionErrorMsg('Database ID missing in Vercel environment variables.');
-        return;
-      }
       try {
-        const fetchHeaders = { 
-          'Content-Type': 'application/json',
-          'Notion-Version': '2022-06-28'
-        };
-
-        if (NOTION_KEY) {
-          fetchHeaders['Authorization'] = `Bearer ${NOTION_KEY}`;
-        }
-
-        // Clean, unfiltered POST payload body to bypass 400 Bad Request schema errors
-        const res = await fetch(`/notion-api/databases/${DATABASE_ID}/query`, {
-          method: 'POST',
-          headers: fetchHeaders,
-          body: JSON.stringify({})
-        });
+        const res = await fetch('/api/notion');
+        const data = await res.json();
 
         if (res.ok) {
-          const data = await res.json();
           if (data.results && data.results.length > 0) {
             const parsed = data.results.map((page) => {
               const props = page.properties || {};
               
-              // Dynamic title resolution
               let name = 'Unnamed Asset';
               Object.keys(props).forEach((key) => {
                 if (props[key]?.type === 'title' && props[key]?.title?.[0]?.plain_text) {
@@ -80,7 +58,6 @@ export default function App() {
                 }
               });
 
-              // Dynamic photo resolution
               let photoUrl = '';
               const photoPropKey = Object.keys(props).find(k => k.toLowerCase() === 'photo' || k.toLowerCase() === 'image');
               if (photoPropKey && props[photoPropKey]?.files?.[0]) {
@@ -89,7 +66,6 @@ export default function App() {
                 else if (fileObj.type === 'external') photoUrl = fileObj.external?.url || '';
               }
 
-              // Property lookups with fallbacks
               const category = props['Category']?.select?.name?.toLowerCase() || props['Type']?.select?.name?.toLowerCase() || 'seat';
               const location = props['Location']?.select?.name || props['Location']?.rich_text?.[0]?.plain_text || '115 Hodson Lab';
               const brand = props['Brand']?.rich_text?.[0]?.plain_text || props['Brand']?.select?.name || '';
@@ -113,10 +89,10 @@ export default function App() {
             setNotionErrorMsg('');
           }
         } else {
-          setNotionErrorMsg(`Notion API HTTP error: ${res.status} ${res.statusText}`);
+          setNotionErrorMsg(data.message || `Notion API Error (${res.status})`);
         }
       } catch (err) {
-        setNotionErrorMsg('Could not reach Notion proxy. Displaying default assets.');
+        setNotionErrorMsg('Could not reach backend API endpoint.');
       }
     }
     loadNotionData();
@@ -144,7 +120,7 @@ export default function App() {
     );
     const location = encodeURIComponent(`Room 115 Hodson Lab - ${selectedAsset.location}`);
 
-    const gCalLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&src=${encodeURIComponent(GOOGLE_CALENDAR_ID)}&text=${title}&dates=${startISO}/${endISO}&details=${details}&location=${location}&ctz=America/Chicago`;
+    const gCalLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&src=${encodeURIComponent(GOOGLE_CALENDAR_ID)}&text=${title}&dates=${startISO}/${endISO}&details=${details}&location=${location}&ctz=America%2FChicago`;
     
     setCalendarUrl(gCalLink);
     setBookingSuccess(true);
@@ -168,11 +144,11 @@ export default function App() {
                 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
                 : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
             }`}>
-              {notionConnected ? 'Notion Database Connected' : 'Local Fallback Assets'}
+              {notionConnected ? 'Notion Connected' : 'Local Fallback Mode'}
             </span>
           </div>
           <p className="text-slate-400 text-sm mt-1">
-            Visual 2D Floor Plan & Reservation Portal for Seats, Microscopes, Scales, Sinks, and Wet Bays
+            Visual 2D Floor Plan & Multi-Day Reservation Portal for Seats, Microscopes, Scales, Sinks, and Wet Bays
           </p>
         </div>
 
@@ -183,7 +159,7 @@ export default function App() {
             rel="noreferrer"
             className="px-4 py-2 bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 rounded-lg text-sm font-medium transition flex items-center gap-2"
           >
-            <Calendar className="w-4 h-4 text-blue-400" /> View Live UMN Calendar
+            <Calendar className="w-4 h-4 text-blue-400" /> Live UMN Calendar
           </a>
 
           <button 
@@ -204,7 +180,7 @@ export default function App() {
         <div className="max-w-7xl mx-auto mb-6 p-4 bg-amber-950/40 border border-amber-500/30 rounded-xl flex items-start gap-3 text-amber-300 text-xs">
           <AlertTriangle className="w-5 h-5 shrink-0 text-amber-400 mt-0.5" />
           <div>
-            <span className="font-bold">Notion Sync Status:</span> {notionErrorMsg}
+            <span className="font-bold">Notion Status:</span> {notionErrorMsg}
           </div>
         </div>
       )}
@@ -572,3 +548,4 @@ export default function App() {
     </div>
   );
 }
+EOF
