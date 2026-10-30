@@ -272,12 +272,17 @@ export default function App() {
                     <input type="text" placeholder="https://..." value={selectedAsset.imageUrl || ''} onChange={(e) => handleAssetUpdate(selectedAsset.id, 'imageUrl', e.target.value)} style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '8px', color: '#fff' }} />
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', color: '#cbd5e1', marginBottom: '4px' }}>Notion Maintenance Link</label>
+                    <label style={{ display: 'block', fontSize: '12px', color: '#cbd5e1', marginBottom: '4px' }}>Notion Maintenance Link (Admin Only)</label>
                     <input type="text" placeholder="https://notion.so/..." value={selectedAsset.notionUrl || ''} onChange={(e) => handleAssetUpdate(selectedAsset.id, 'notionUrl', e.target.value)} style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '8px', color: '#fff' }} />
+                    {selectedAsset.notionUrl && (
+                      <a href={selectedAsset.notionUrl} target="_blank" rel="noreferrer" style={{ fontSize: '12px', color: '#60a5fa', textDecoration: 'underline', marginTop: '6px', display: 'inline-block' }}>
+                        Open Notion Page in New Tab
+                      </a>
+                    )}
                   </div>
                 </div>
               ) : (
-                <p style={{ fontSize: '13px', color: '#94a3b8' }}>Select an asset to edit details.</p>
+                <p style={{ fontSize: '13px', color: '#94a3b8' }}>Select an asset to edit details or view maintenance link.</p>
               )}
             </div>
           ) : (
@@ -286,13 +291,6 @@ export default function App() {
                 <div>
                   <h2 style={{ fontSize: '18px', fontWeight: 'bold', margin: '0 0 4px 0' }}>{selectedAsset.name}</h2>
                   <p style={{ fontSize: '12px', color: '#94a3b8', margin: '0 0 16px 0' }}>{selectedAsset.location}</p>
-
-                  {(selectedAsset.type === 'microscope' || selectedAsset.type === 'scale') && (
-                    <div style={{ padding: '10px', backgroundColor: '#0f172a', borderRadius: '8px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '12px', color: '#cbd5e1' }}>Maintenance Records</span>
-                      <a href={selectedAsset.notionUrl || 'https://notion.so'} target="_blank" rel="noreferrer" style={{ fontSize: '12px', color: '#60a5fa', textDecoration: 'underline' }}>View in Notion</a>
-                    </div>
-                  )}
 
                   {bookingSuccess ? (
                     <div style={{ backgroundColor: '#064e3b', border: '1px solid #059669', padding: '16px', borderRadius: '8px' }}>
