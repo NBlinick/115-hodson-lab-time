@@ -2,7 +2,7 @@ cat << 'EOF' > src/App.jsx
 import React, { useState, useEffect } from 'react';
 import { 
   Calendar, Clock, User, Mail, FileText, CheckCircle2, 
-  ExternalLink, Settings, Search, AlertTriangle, Wrench, Tag, CalendarRange, Info
+  ExternalLink, Settings, Search, AlertTriangle, Wrench, Tag, Info
 } from 'lucide-react';
 
 const GOOGLE_CALENDAR_ID = "umn.edu_utg0nurqmmirg5udgvi2dim1gs@group.calendar.google.com";
@@ -92,7 +92,7 @@ export default function App() {
           setNotionErrorMsg(data.message || `Notion API Error (${res.status})`);
         }
       } catch (err) {
-        setNotionErrorMsg('Could not reach backend API endpoint.');
+        setNotionErrorMsg('Displaying local assets.');
       }
     }
     loadNotionData();
@@ -530,7 +530,7 @@ export default function App() {
                         type="submit"
                         className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-xl text-sm transition shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2"
                       >
-                        <CalendarRange className="w-4 h-4" /> Reserve Multi-Day Block
+                        <Calendar className="w-4 h-4" /> Reserve Multi-Day Block
                       </button>
                     </form>
                   )}
