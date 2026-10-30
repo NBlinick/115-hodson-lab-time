@@ -59,7 +59,7 @@ export default function App() {
           fetchHeaders['Authorization'] = `Bearer ${NOTION_KEY}`;
         }
 
-        // Query database without strict body payload filters to prevent 400 Bad Request
+        // Clean, unfiltered POST payload body to bypass 400 Bad Request schema errors
         const res = await fetch(`/notion-api/databases/${DATABASE_ID}/query`, {
           method: 'POST',
           headers: fetchHeaders,
@@ -70,9 +70,9 @@ export default function App() {
           const data = await res.json();
           if (data.results && data.results.length > 0) {
             const parsed = data.results.map((page) => {
-              const props = page.properties;
+              const props = page.properties || {};
               
-              // Dynamic title fallback
+              // Dynamic title resolution
               let name = 'Unnamed Asset';
               Object.keys(props).forEach((key) => {
                 if (props[key]?.type === 'title' && props[key]?.title?.[0]?.plain_text) {
@@ -82,12 +82,14 @@ export default function App() {
 
               // Dynamic photo resolution
               let photoUrl = '';
-              const photoProperty = props['Photo']?.files?.[0] || props['Image']?.files?.[0];
-              if (photoProperty) {
-                if (photoProperty.type === 'file') photoUrl = photoProperty.file?.url || '';
-                else if (photoProperty.type === 'external') photoUrl = photoProperty.external?.url || '';
+              const photoPropKey = Object.keys(props).find(k => k.toLowerCase() === 'photo' || k.toLowerCase() === 'image');
+              if (photoPropKey && props[photoPropKey]?.files?.[0]) {
+                const fileObj = props[photoPropKey].files[0];
+                if (fileObj.type === 'file') photoUrl = fileObj.file?.url || '';
+                else if (fileObj.type === 'external') photoUrl = fileObj.external?.url || '';
               }
 
+              // Property lookups with fallbacks
               const category = props['Category']?.select?.name?.toLowerCase() || props['Type']?.select?.name?.toLowerCase() || 'seat';
               const location = props['Location']?.select?.name || props['Location']?.rich_text?.[0]?.plain_text || '115 Hodson Lab';
               const brand = props['Brand']?.rich_text?.[0]?.plain_text || props['Brand']?.select?.name || '';
@@ -114,7 +116,7 @@ export default function App() {
           setNotionErrorMsg(`Notion API HTTP error: ${res.status} ${res.statusText}`);
         }
       } catch (err) {
-        setNotionErrorMsg('Could not reach Notion proxy. Displaying local default assets.');
+        setNotionErrorMsg('Could not reach Notion proxy. Displaying default assets.');
       }
     }
     loadNotionData();
@@ -170,7 +172,7 @@ export default function App() {
             </span>
           </div>
           <p className="text-slate-400 text-sm mt-1">
-            Visual 2D Floor Plan & Multi-Day Reservation Portal for Seats, Microscopes, Scales, Sinks, and Wet Bays
+            Visual 2D Floor Plan & Reservation Portal for Seats, Microscopes, Scales, Sinks, and Wet Bays
           </p>
         </div>
 
@@ -435,7 +437,7 @@ export default function App() {
                         <CheckCircle2 className="w-5 h-5" /> Reservation Details Prepared!
                       </div>
                       <p className="text-xs text-slate-300">
-                        Click below to post this multi-day checkout directly to the <strong className="text-white">115 Hodson Lab Time</strong> Google Calendar:
+                        Click below to post this checkout directly to the <strong className="text-white">115 Hodson Lab Time</strong> Google Calendar:
                       </p>
                       <a 
                         href={calendarUrl}
