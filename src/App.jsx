@@ -124,8 +124,10 @@ export default function App() {
     const endISO = `${finalEndDate.replace(/-/g, '')}T${endTime.replace(':', '')}00`;
 
     const title = encodeURIComponent(`${selectedAsset.name}${selectedAsset.model ? ` (${selectedAsset.model})` : ''}`);
+    
+    // Clean Google Calendar Details (No Notion link included)
     const details = encodeURIComponent(
-      `Reserved by: ${userName} (${userEmail})\nEquipment: ${selectedAsset.name}\nBrand & Model: ${selectedAsset.brand || 'N/A'} ${selectedAsset.model || ''}\nLocation: ${selectedAsset.location}\nCheckout Duration: ${startDate} ${startTime} to ${finalEndDate} ${endTime}\nProject Notes: ${notes}\nNotion Maintenance Records: ${selectedAsset.notionUrl || 'N/A'}`
+      `Reserved by: ${userName} (${userEmail})\nEquipment: ${selectedAsset.name}\nBrand & Model: ${selectedAsset.brand || 'N/A'} ${selectedAsset.model || ''}\nLocation: ${selectedAsset.location}\nCheckout Duration: ${startDate} ${startTime} to ${finalEndDate} ${endTime}\nProject Notes: ${notes}`
     );
     const location = encodeURIComponent(`Room 115 Hodson Lab - ${selectedAsset.location}`);
 
