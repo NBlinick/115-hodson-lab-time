@@ -12,8 +12,17 @@ const DEFAULT_ASSETS = [
   { id: 'scale-02', name: 'Ohaus Top-Loading Precision Scale', brand: 'Ohaus', model: 'Navigator NV', type: 'scale', location: 'Weighing Bay 2', status: 'available', notionUrl: 'https://notion.so', imageUrl: '' },
   { id: 'sink-01', name: 'Main Wet Lab Sink', brand: 'Just Mfg', model: 'DL-1824', type: 'sink', location: 'North Wall Sink', status: 'available', notionUrl: '', imageUrl: '' },
   { id: 'sink-02', name: 'Chemical Decontamination Sink', brand: 'Guardian', model: 'G1540', type: 'sink', location: 'South Wall Sink', status: 'available', notionUrl: '', imageUrl: '' },
-  { id: 'hood-01', name: 'Fume Hood Station 1', brand: 'Labconco', model: 'Protector XStream', type: 'fume_hood', location: 'East Wall', status: 'available', notionUrl: '', imageUrl: '' },
-  { id: 'centrifuge-01', name: 'Benchtop Refrigerated Centrifuge', brand: 'Eppendorf', model: '5424 R', type: 'centrifuge', location: 'Prep Area', status: 'available', notionUrl: '', imageUrl: '' }
+  { id: 'oven-01', name: 'Precision Vacuum Drying Oven #1', brand: 'Fisherbrand', model: 'IsoTemp 280A', type: 'drying oven', location: 'East Prep Wall', status: 'available', notionUrl: '', imageUrl: '' },
+  { id: 'oven-02', name: 'High-Temp Forced Air Drying Oven #2', brand: 'Binder', model: 'FD 115', type: 'drying oven', location: 'East Prep Wall', status: 'available', notionUrl: '', imageUrl: '' }
+];
+
+const CATEGORIES = [
+  { id: 'all', label: 'All Equipment' },
+  { id: 'microscope', label: 'Microscopes' },
+  { id: 'scale', label: 'Scales' },
+  { id: 'sink', label: 'Sinks' },
+  { id: 'drying oven', label: 'Drying Ovens' },
+  { id: 'seat', label: 'Seats' }
 ];
 
 export default function App() {
@@ -25,7 +34,7 @@ export default function App() {
   const [notionConnected, setNotionConnected] = useState(false);
   const [notionStatusMsg, setNotionStatusMsg] = useState('Checking Notion connection...');
 
-  // Flexible Date/Time Booking Form State
+  // Flexible Date & Time Booking Form State
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [startTime, setStartTime] = useState('09:00');
@@ -60,7 +69,13 @@ export default function App() {
               photoUrl = fileObj.file?.url || fileObj.external?.url || '';
             }
 
-            const category = props['Category']?.select?.name?.toLowerCase() || props['Type']?.select?.name?.toLowerCase() || 'seat';
+            const rawCat = (props['Category']?.select?.name || props['Type']?.select?.name || 'seat').toLowerCase();
+            let category = 'seat';
+            if (rawCat.includes('microscope')) category = 'microscope';
+            else if (rawCat.includes('scale') || rawCat.includes('balance')) category = 'scale';
+            else if (rawCat.includes('sink')) category = 'sink';
+            else if (rawCat.includes('oven') || rawCat.includes('dry')) category = 'drying oven';
+
             const location = props['Location']?.select?.name || props['Location']?.rich_text?.[0]?.plain_text || '115 Hodson Lab';
             const brand = props['Brand']?.rich_text?.[0]?.plain_text || props['Brand']?.select?.name || '';
             const model = props['Model']?.rich_text?.[0]?.plain_text || props['Model']?.select?.name || '';
@@ -104,7 +119,6 @@ export default function App() {
     e.preventDefault();
     if (!selectedAsset) return;
 
-    // Use selected end date if provided; default to start date for same-day bookings
     const finalEndDate = endDate || startDate;
     const startISO = `${startDate.replace(/-/g, '')}T${startTime.replace(':', '')}00`;
     const endISO = `${finalEndDate.replace(/-/g, '')}T${endTime.replace(':', '')}00`;
@@ -139,7 +153,7 @@ export default function App() {
             </span>
           </div>
           <p style={{ color: '#94a3b8', fontSize: '14px', marginTop: '4px' }}>
-            Visual 2D Floor Plan & Flexible Reservation Portal for Seats, Microscopes, Scales, Sinks, and Wet Bays
+            Visual 2D Floor Plan & Flexible Reservation Portal for Seats, Microscopes, Scales, Sinks, and Drying Ovens
           </p>
         </div>
 
@@ -170,30 +184,39 @@ export default function App() {
 
       <main style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
         <section>
-          <div style={{ backgroundColor: '#1e293b', padding: '16px', borderRadius: '12px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between' }}>
+          <div style={{ backgroundColor: '#1e293b', padding: '16px', borderRadius: '12px', marginBottom: '16px', display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center' }}>
             <input 
               type="text"
               placeholder="Search equipment, brand, or model..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              style={{ width: '240px', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '8px 12px', color: '#f8fafc' }}
+              style={{ width: '220px', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '8px 12px', color: '#f8fafc' }}
             />
 
-            <div style={{ display: 'flex', gap: '6px' }}>
-              {['all', 'seat', 'microscope', 'scale', 'sink'].map((type) => (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+              {CATEGORIES.map((cat) => (
                 <button
-                  key={type}
-                  onClick={() => setActiveFilter(type)}
-                  style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '12px', border: 'none', cursor: 'pointer', backgroundColor: activeFilter === type ? '#2563eb' : '#0f172a', color: '#ffffff', textTransform: 'capitalize' }}
+                  key={cat.id}
+                  onClick={() => setActiveFilter(cat.id)}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    backgroundColor: activeFilter === cat.id ? '#2563eb' : '#0f172a',
+                    color: '#ffffff',
+                    fontWeight: activeFilter === cat.id ? 'bold' : 'normal'
+                  }}
                 >
-                  {type === 'scale' ? 'Scales' : type + 's'}
+                  {cat.label}
                 </button>
               ))}
             </div>
           </div>
 
           <div style={{ backgroundColor: '#020617', border: '1px solid #1e293b', borderRadius: '16px', padding: '20px' }}>
-            <div style={{ borderBottom: '1px solid #1e293b', paddingBottom: '12px', marginBottom: '16px', fontSize: '12px', color: '#64748b', textTransform: 'uppercase' }}>
+            <div style={{ borderBottom: '1px solid #1e293b', paddingBottom: '12px', marginBottom: '16px', fontSize: '12px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Floor Plan Blueprint - Room 115 Hodson
             </div>
 
@@ -215,8 +238,8 @@ export default function App() {
                     {asset.imageUrl ? (
                       <img src={asset.imageUrl} alt={asset.name} style={{ width: '100%', height: '80px', objectFit: 'cover', borderRadius: '6px', marginBottom: '8px' }} />
                     ) : (
-                      <div style={{ width: '100%', height: '60px', backgroundColor: '#020617', borderRadius: '6px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: '#475569' }}>
-                        {asset.type.toUpperCase()}
+                      <div style={{ width: '100%', height: '60px', backgroundColor: '#020617', borderRadius: '6px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: '#475569', textTransform: 'uppercase' }}>
+                        {asset.type}
                       </div>
                     )}
 
@@ -239,7 +262,7 @@ export default function App() {
               {selectedAsset ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', color: '#cbd5e1', marginBottom: '4px' }}>Name</label>
+                    <label style={{ display: 'block', fontSize: '12px', color: '#cbd5e1', marginBottom: '4px' }}>Equipment Name</label>
                     <input type="text" value={selectedAsset.name} onChange={(e) => handleAssetUpdate(selectedAsset.id, 'name', e.target.value)} style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '8px', color: '#fff' }} />
                   </div>
                   <div>
@@ -284,12 +307,13 @@ export default function App() {
                           <input 
                             type="date" 
                             required 
+                            colorScheme="dark"
                             value={startDate} 
                             onChange={(e) => { 
                               setStartDate(e.target.value); 
                               if (!endDate || endDate < e.target.value) setEndDate(e.target.value); 
                             }} 
-                            style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '8px', color: '#fff' }} 
+                            style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '8px', color: '#fff', colorScheme: 'dark' }} 
                           />
                         </div>
                         <div>
@@ -299,7 +323,7 @@ export default function App() {
                             min={startDate} 
                             value={endDate} 
                             onChange={(e) => setEndDate(e.target.value)} 
-                            style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '8px', color: '#fff' }} 
+                            style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '8px', color: '#fff', colorScheme: 'dark' }} 
                           />
                         </div>
                       </div>
@@ -312,7 +336,7 @@ export default function App() {
                             required 
                             value={startTime} 
                             onChange={(e) => setStartTime(e.target.value)} 
-                            style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '8px', color: '#fff' }} 
+                            style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '8px', color: '#fff', colorScheme: 'dark' }} 
                           />
                         </div>
                         <div>
@@ -322,7 +346,7 @@ export default function App() {
                             required 
                             value={endTime} 
                             onChange={(e) => setEndTime(e.target.value)} 
-                            style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '8px', color: '#fff' }} 
+                            style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '8px', color: '#fff', colorScheme: 'dark' }} 
                           />
                         </div>
                       </div>
@@ -350,7 +374,7 @@ export default function App() {
                 </div>
               ) : (
                 <div style={{ textAlign: 'center', color: '#94a3b8', padding: '32px 0' }}>
-                  Select any seat, microscope, scale, or sink on the floor plan map to reserve.
+                  Select any seat, microscope, scale, sink, or oven on the floor plan map to reserve.
                 </div>
               )}
             </div>
