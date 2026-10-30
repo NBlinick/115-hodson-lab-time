@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    @apply bg-slate-900 text-slate-100 font-sans antialiased;
+  }
+}
+
+/* Force native browser calendar and clock picker icons to render high-contrast white */
+input[type="date"], input[type="time"] {
+  color-scheme: dark;
+}
