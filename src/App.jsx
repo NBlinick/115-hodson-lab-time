@@ -25,10 +25,11 @@ export default function App() {
   const [notionConnected, setNotionConnected] = useState(false);
   const [notionStatusMsg, setNotionStatusMsg] = useState('Checking Notion connection...');
 
+  // Flexible Date/Time Booking Form State
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [startTime, setStartTime] = useState('09:00');
-  const [endTime, setEndTime] = useState('17:00');
+  const [endTime, setEndTime] = useState('10:00');
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [notes, setNotes] = useState('');
@@ -81,7 +82,7 @@ export default function App() {
           setNotionConnected(true);
           setNotionStatusMsg('Connected to Notion Database');
         } else {
-          setNotionStatusMsg(data.message || 'Notion proxy returned standard fallback data.');
+          setNotionStatusMsg(data.message || 'Displaying local fallback asset data.');
         }
       } catch (err) {
         setNotionStatusMsg('Local dev mode: serverless /api/notion runs when published to Vercel.');
@@ -103,12 +104,14 @@ export default function App() {
     e.preventDefault();
     if (!selectedAsset) return;
 
+    // Use selected end date if provided; default to start date for same-day bookings
     const finalEndDate = endDate || startDate;
     const startISO = `${startDate.replace(/-/g, '')}T${startTime.replace(':', '')}00`;
     const endISO = `${finalEndDate.replace(/-/g, '')}T${endTime.replace(':', '')}00`;
+
     const title = encodeURIComponent(`${selectedAsset.name}${selectedAsset.model ? ` (${selectedAsset.model})` : ''}`);
     const details = encodeURIComponent(
-      `Reserved by: ${userName} (${userEmail})\nEquipment: ${selectedAsset.name}\nBrand & Model: ${selectedAsset.brand || 'N/A'} ${selectedAsset.model || ''}\nLocation: ${selectedAsset.location}\nCheckout Duration: ${startDate} to ${finalEndDate}\nProject Notes: ${notes}\nNotion Maintenance Records: ${selectedAsset.notionUrl || 'N/A'}`
+      `Reserved by: ${userName} (${userEmail})\nEquipment: ${selectedAsset.name}\nBrand & Model: ${selectedAsset.brand || 'N/A'} ${selectedAsset.model || ''}\nLocation: ${selectedAsset.location}\nCheckout Duration: ${startDate} ${startTime} to ${finalEndDate} ${endTime}\nProject Notes: ${notes}\nNotion Maintenance Records: ${selectedAsset.notionUrl || 'N/A'}`
     );
     const location = encodeURIComponent(`Room 115 Hodson Lab - ${selectedAsset.location}`);
 
@@ -136,7 +139,7 @@ export default function App() {
             </span>
           </div>
           <p style={{ color: '#94a3b8', fontSize: '14px', marginTop: '4px' }}>
-            Visual 2D Floor Plan & Multi-Day Reservation Portal for Seats, Microscopes, Scales, Sinks, and Wet Bays
+            Visual 2D Floor Plan & Flexible Reservation Portal for Seats, Microscopes, Scales, Sinks, and Wet Bays
           </p>
         </div>
 
@@ -275,24 +278,72 @@ export default function App() {
                     </div>
                   ) : (
                     <form onSubmit={handleBookingSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '12px', color: '#cbd5e1', marginBottom: '4px' }}>Start Date</label>
-                        <input type="date" required value={startDate} onChange={(e) => { setStartDate(e.target.value); if (!endDate || endDate < e.target.value) setEndDate(e.target.value); }} style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '8px', color: '#fff' }} />
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '12px', color: '#cbd5e1', marginBottom: '4px' }}>Start Date</label>
+                          <input 
+                            type="date" 
+                            required 
+                            value={startDate} 
+                            onChange={(e) => { 
+                              setStartDate(e.target.value); 
+                              if (!endDate || endDate < e.target.value) setEndDate(e.target.value); 
+                            }} 
+                            style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '8px', color: '#fff' }} 
+                          />
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '12px', color: '#cbd5e1', marginBottom: '4px' }}>End Date (Optional)</label>
+                          <input 
+                            type="date" 
+                            min={startDate} 
+                            value={endDate} 
+                            onChange={(e) => setEndDate(e.target.value)} 
+                            style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '8px', color: '#fff' }} 
+                          />
+                        </div>
                       </div>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '12px', color: '#cbd5e1', marginBottom: '4px' }}>End Date</label>
-                        <input type="date" required min={startDate} value={endDate} onChange={(e) => setEndDate(e.target.value)} style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '8px', color: '#fff' }} />
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '12px', color: '#cbd5e1', marginBottom: '4px' }}>Start Time</label>
+                          <input 
+                            type="time" 
+                            required 
+                            value={startTime} 
+                            onChange={(e) => setStartTime(e.target.value)} 
+                            style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '8px', color: '#fff' }} 
+                          />
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '12px', color: '#cbd5e1', marginBottom: '4px' }}>End Time</label>
+                          <input 
+                            type="time" 
+                            required 
+                            value={endTime} 
+                            onChange={(e) => setEndTime(e.target.value)} 
+                            style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '8px', color: '#fff' }} 
+                          />
+                        </div>
                       </div>
+
                       <div>
                         <label style={{ display: 'block', fontSize: '12px', color: '#cbd5e1', marginBottom: '4px' }}>Researcher Name</label>
                         <input type="text" required placeholder="Jane Doe" value={userName} onChange={(e) => setUserName(e.target.value)} style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '8px', color: '#fff' }} />
                       </div>
+
                       <div>
                         <label style={{ display: 'block', fontSize: '12px', color: '#cbd5e1', marginBottom: '4px' }}>Contact Email</label>
                         <input type="email" required placeholder="jane@university.edu" value={userEmail} onChange={(e) => setUserEmail(e.target.value)} style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '8px', color: '#fff' }} />
                       </div>
+
+                      <div>
+                        <label style={{ display: 'block', fontSize: '12px', color: '#cbd5e1', marginBottom: '4px' }}>Project Notes / Protocol</label>
+                        <textarea rows={2} placeholder="Experiment details..." value={notes} onChange={(e) => setNotes(e.target.value)} style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '8px', color: '#fff' }} />
+                      </div>
+
                       <button type="submit" style={{ width: '100%', padding: '12px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', marginTop: '8px' }}>
-                        Reserve Multi-Day Block
+                        Reserve Selected Time Slot
                       </button>
                     </form>
                   )}
