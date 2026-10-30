@@ -1,20 +1,12 @@
 export default async function handler(req, res) {
-  // Read API key and Database ID from Vercel environment variables
   const apiKey = (process.env.NOTION_API_KEY || process.env.VITE_NOTION_API_KEY || '').trim();
   const rawDbId = (process.env.NOTION_DATABASE_ID || process.env.VITE_NOTION_DATABASE_ID || '').trim();
 
-  // Strip anything that is NOT a hex character (a-f, A-F, 0-9)
   const cleanDbId = rawDbId.replace(/[^a-fA-F0-9]/g, '');
 
-  if (!apiKey) {
+  if (!apiKey || cleanDbId.length !== 32) {
     return res.status(400).json({ 
-      message: "NOTION_API_KEY is missing in Vercel Environment Variables." 
-    });
-  }
-
-  if (cleanDbId.length !== 32) {
-    return res.status(400).json({ 
-      message: `Database ID is invalid (${cleanDbId.length} hex chars instead of 32). Cleaned ID value: "${cleanDbId}"` 
+      message: "Missing or invalid Notion credentials in Vercel environment variables." 
     });
   }
 
@@ -26,15 +18,21 @@ export default async function handler(req, res) {
         'Notion-Version': '2022-06-28',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({})
+      body: JSON.stringify({
+        filter: {
+          property: "Include in App",
+          checkbox: {
+            equals: true
+          }
+        }
+      })
     });
 
     const data = await notionRes.json();
 
     if (!notionRes.ok) {
       return res.status(notionRes.status).json({
-        message: data.message || `Notion API rejected request with HTTP ${notionRes.status}`,
-        code: data.code || 'NOTION_REJECTION',
+        message: data.message || `Notion API error (${notionRes.status})`,
         details: data
       });
     }
