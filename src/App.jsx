@@ -1,5 +1,5 @@
 cat << 'EOF' > src/App.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Calendar, Clock, User, Mail, FileText, CheckCircle2, 
   ExternalLink, Settings, Search, AlertTriangle, Wrench, Tag, Info
@@ -27,8 +27,6 @@ export default function App() {
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isAdminMode, setIsAdminMode] = useState(false);
-  const [notionConnected, setNotionConnected] = useState(false);
-  const [notionErrorMsg, setNotionErrorMsg] = useState('');
 
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -39,64 +37,6 @@ export default function App() {
   const [notes, setNotes] = useState('');
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [calendarUrl, setCalendarUrl] = useState('');
-
-  useEffect(() => {
-    async function loadNotionData() {
-      try {
-        const res = await fetch('/api/notion');
-        const data = await res.json();
-
-        if (res.ok) {
-          if (data.results && data.results.length > 0) {
-            const parsed = data.results.map((page) => {
-              const props = page.properties || {};
-              
-              let name = 'Unnamed Asset';
-              Object.keys(props).forEach((key) => {
-                if (props[key]?.type === 'title' && props[key]?.title?.[0]?.plain_text) {
-                  name = props[key].title[0].plain_text;
-                }
-              });
-
-              let photoUrl = '';
-              const photoPropKey = Object.keys(props).find(k => k.toLowerCase() === 'photo' || k.toLowerCase() === 'image');
-              if (photoPropKey && props[photoPropKey]?.files?.[0]) {
-                const fileObj = props[photoPropKey].files[0];
-                if (fileObj.type === 'file') photoUrl = fileObj.file?.url || '';
-                else if (fileObj.type === 'external') photoUrl = fileObj.external?.url || '';
-              }
-
-              const category = props['Category']?.select?.name?.toLowerCase() || props['Type']?.select?.name?.toLowerCase() || 'seat';
-              const location = props['Location']?.select?.name || props['Location']?.rich_text?.[0]?.plain_text || '115 Hodson Lab';
-              const brand = props['Brand']?.rich_text?.[0]?.plain_text || props['Brand']?.select?.name || '';
-              const model = props['Model']?.rich_text?.[0]?.plain_text || props['Model']?.select?.name || '';
-
-              return {
-                id: page.id,
-                name: name,
-                brand: brand,
-                model: model,
-                type: category,
-                location: location,
-                status: 'available',
-                notionUrl: page.url,
-                imageUrl: photoUrl
-              };
-            });
-
-            setAssets(parsed);
-            setNotionConnected(true);
-            setNotionErrorMsg('');
-          }
-        } else {
-          setNotionErrorMsg(data.message || `Notion API Error (${res.status})`);
-        }
-      } catch (err) {
-        setNotionErrorMsg('Displaying local assets.');
-      }
-    }
-    loadNotionData();
-  }, []);
 
   const filteredAssets = assets.filter((asset) => {
     const matchesFilter = activeFilter === 'all' || asset.type === activeFilter;
@@ -139,12 +79,8 @@ export default function App() {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-3xl font-bold text-white tracking-tight">115 Hodson Lab Time</h1>
-            <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${
-              notionConnected 
-                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
-                : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-            }`}>
-              {notionConnected ? 'Notion Connected' : 'Local Fallback Mode'}
+            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              Active System
             </span>
           </div>
           <p className="text-slate-400 text-sm mt-1">
@@ -175,15 +111,6 @@ export default function App() {
           </button>
         </div>
       </header>
-
-      {notionErrorMsg && !notionConnected && (
-        <div className="max-w-7xl mx-auto mb-6 p-4 bg-amber-950/40 border border-amber-500/30 rounded-xl flex items-start gap-3 text-amber-300 text-xs">
-          <AlertTriangle className="w-5 h-5 shrink-0 text-amber-400 mt-0.5" />
-          <div>
-            <span className="font-bold">Notion Status:</span> {notionErrorMsg}
-          </div>
-        </div>
-      )}
 
       <main className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
         <section className="lg:col-span-2 space-y-6">
