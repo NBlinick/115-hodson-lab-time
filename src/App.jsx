@@ -231,7 +231,7 @@ export default function App() {
 
           <div style={{ backgroundColor: '#020617', border: '1px solid #1e293b', borderRadius: '16px', padding: '20px' }}>
             <div style={{ borderBottom: '1px solid #1e293b', paddingBottom: '12px', marginBottom: '16px', fontSize: '12px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', justifyContent: 'space-between' }}>
-              <span>Available Lab Assets (Microscopes $\rightarrow$ Scales $\rightarrow$ Sinks $\rightarrow$ Ovens $\rightarrow$ Seats)</span>
+              
               <span style={{ color: '#38bdf8', textTransform: 'none' }}>Click tiles to select multiple assets</span>
             </div>
 
