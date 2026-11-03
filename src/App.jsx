@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-// Target Google Calendar ID for "115 Hodson Lab Time"
+// Google Calendar ID for "115 Hodson Lab Time"
 const GCAL_TARGET_ID = "umn.edu_utg0nurqmmirg5udgvi2dim1gs@group.calendar.google.com";
 
 const DEFAULT_LAB_ASSETS = [
@@ -8,13 +8,24 @@ const DEFAULT_LAB_ASSETS = [
   { id: 'scope-2', name: 'Olympus CX23 Microscope', brand: 'Olympus', model: 'CX23', category: 'Microscope', location: 'Station 1B (North Wall)', notionUrl: 'https://notion.so', imageUrl: '' },
   { id: 'scale-1', name: 'Mettler Toledo Balance', brand: 'Mettler Toledo', model: 'ME204T', category: 'Weighing Scale', location: 'Weighing Bench 1', notionUrl: 'https://notion.so', imageUrl: '' },
   { id: 'scale-2', name: 'Ohaus Navigator Scale', brand: 'Ohaus', model: 'NV221', category: 'Weighing Scale', location: 'Weighing Bench 2', notionUrl: 'https://notion.so', imageUrl: '' },
+  { id: 'sink-1', name: 'North Wet Lab Sink', brand: 'Justrite', model: 'Stainless Steel', category: 'Sink', location: 'Northwest Corner', notionUrl: '', imageUrl: '' },
+  { id: 'oven-1', name: 'Fisher IsoTemp Oven', brand: 'Fisher Scientific', model: '280A', category: 'Drying Oven', location: 'South Wall Bay', notionUrl: '', imageUrl: '' },
   { id: 'seat-1a', name: 'Bench Seat 1A', brand: 'Labconco', model: 'Ergonomic Stool', category: 'Seat', location: 'Center Bench Row 1', notionUrl: '', imageUrl: '' },
   { id: 'seat-1b', name: 'Bench Seat 1B', brand: 'Labconco', model: 'Ergonomic Stool', category: 'Seat', location: 'Center Bench Row 1', notionUrl: '', imageUrl: '' },
   { id: 'seat-2a', name: 'Bench Seat 2A', brand: 'Labconco', model: 'Ergonomic Stool', category: 'Seat', location: 'Center Bench Row 2', notionUrl: '', imageUrl: '' },
-  { id: 'seat-2b', name: 'Bench Seat 2B', brand: 'Labconco', model: 'Ergonomic Stool', category: 'Seat', location: 'Center Bench Row 2', notionUrl: '', imageUrl: '' },
-  { id: 'oven-1', name: 'Fisher IsoTemp Oven', brand: 'Fisher Scientific', model: '280A', category: 'Drying Oven', location: 'South Wall Bay', notionUrl: '', imageUrl: '' },
-  { id: 'sink-1', name: 'North Wet Lab Sink', brand: 'Justrite', model: 'Stainless Steel', category: 'Sink', location: 'Northwest Corner', notionUrl: '', imageUrl: '' }
+  { id: 'seat-2b', name: 'Bench Seat 2B', brand: 'Labconco', model: 'Ergonomic Stool', category: 'Seat', location: 'Center Bench Row 2', notionUrl: '', imageUrl: '' }
 ];
+
+// Explicit Sorting Priority: Microscopes (1) -> Scales (2) -> Sinks (3) -> Ovens (4) -> Seats (5) -> Other (6)
+function getLabCategoryRank(category) {
+  const c = (category || '').toLowerCase();
+  if (c.includes('scope') || c.includes('microscope')) return 1;
+  if (c.includes('scale') || c.includes('balance') || c.includes('weigh')) return 2;
+  if (c.includes('sink') || c.includes('wash')) return 3;
+  if (c.includes('oven') || c.includes('dry')) return 4;
+  if (c.includes('seat') || c.includes('bench') || c.includes('stool')) return 5;
+  return 6;
+}
 
 export default function App() {
   const [assets, setAssets] = useState(DEFAULT_LAB_ASSETS);
@@ -77,6 +88,14 @@ export default function App() {
             };
           });
 
+          // Sort assets by custom rank priority
+          parsed.sort((a, b) => {
+            const rankA = getLabCategoryRank(a.category);
+            const rankB = getLabCategoryRank(b.category);
+            if (rankA !== rankB) return rankA - rankB;
+            return a.name.localeCompare(b.name);
+          });
+
           setAssets(parsed);
           setNotionConnected(true);
           setNotionStatusMsg('Connected to Notion Database');
@@ -90,7 +109,10 @@ export default function App() {
     fetchNotionData();
   }, []);
 
-  const categories = ['all', ...Array.from(new Set(assets.map(a => a.category)))];
+  // Dynamically derive unique category buttons, sorted by rank priority
+  const uniqueCats = Array.from(new Set(assets.map(a => a.category))).filter(Boolean);
+  uniqueCats.sort((a, b) => getLabCategoryRank(a) - getLabCategoryRank(b));
+  const dynamicCategories = ['all', ...uniqueCats];
 
   const toggleAssetSelection = (asset) => {
     setBookingSuccess(false);
@@ -135,7 +157,7 @@ export default function App() {
   };
 
   const filteredAssets = assets.filter(a => {
-    const matchesCat = activeCategory === 'all' || a.category === activeCategory;
+    const matchesCat = activeCategory === 'all' || a.category.toLowerCase() === activeCategory.toLowerCase();
     const matchesSearch = a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           a.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           (a.brand && a.brand.toLowerCase().includes(searchQuery.toLowerCase())) ||
@@ -154,7 +176,7 @@ export default function App() {
             </span>
           </div>
           <p style={{ color: '#94a3b8', fontSize: '14px', marginTop: '4px' }}>
-            Multi-Asset Reservation Portal for Seats, Microscopes, Scales, Ovens, & Sinks
+            Multi-Asset Reservation Portal for Microscopes, Scales, Sinks, Ovens, & Seats
           </p>
         </div>
 
@@ -173,7 +195,7 @@ export default function App() {
       )}
 
       <main style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
-        {/* Left Column: Asset Tile Grid */}
+        {/* Left Column: Sorted Asset Tile Grid */}
         <section>
           <div style={{ backgroundColor: '#1e293b', padding: '16px', borderRadius: '12px', marginBottom: '16px', display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center' }}>
             <input 
@@ -185,7 +207,7 @@ export default function App() {
             />
 
             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-              {categories.map(cat => (
+              {dynamicCategories.map(cat => (
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
@@ -209,7 +231,7 @@ export default function App() {
 
           <div style={{ backgroundColor: '#020617', border: '1px solid #1e293b', borderRadius: '16px', padding: '20px' }}>
             <div style={{ borderBottom: '1px solid #1e293b', paddingBottom: '12px', marginBottom: '16px', fontSize: '12px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', justifyContent: 'space-between' }}>
-              <span>Available Lab Equipment & Seats</span>
+              <span>Available Lab Assets (Microscopes $\rightarrow$ Scales $\rightarrow$ Sinks $\rightarrow$ Ovens $\rightarrow$ Seats)</span>
               <span style={{ color: '#38bdf8', textTransform: 'none' }}>Click tiles to select multiple assets</span>
             </div>
 
