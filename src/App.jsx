@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-// Google Calendar ID for "115 Hodson Lab Time"
+// Target Google Calendar ID for "115 Hodson Lab Time"
 const GCAL_TARGET_ID = "umn.edu_utg0nurqmmirg5udgvi2dim1gs@group.calendar.google.com";
 
 const DEFAULT_LAB_ASSETS = [
@@ -88,7 +88,6 @@ export default function App() {
             };
           });
 
-          // Sort assets by custom rank priority
           parsed.sort((a, b) => {
             const rankA = getLabCategoryRank(a.category);
             const rankB = getLabCategoryRank(b.category);
@@ -109,7 +108,6 @@ export default function App() {
     fetchNotionData();
   }, []);
 
-  // Dynamically derive unique category buttons, sorted by rank priority
   const uniqueCats = Array.from(new Set(assets.map(a => a.category))).filter(Boolean);
   uniqueCats.sort((a, b) => getLabCategoryRank(a) - getLabCategoryRank(b));
   const dynamicCategories = ['all', ...uniqueCats];
@@ -231,7 +229,7 @@ export default function App() {
 
           <div style={{ backgroundColor: '#020617', border: '1px solid #1e293b', borderRadius: '16px', padding: '20px' }}>
             <div style={{ borderBottom: '1px solid #1e293b', paddingBottom: '12px', marginBottom: '16px', fontSize: '12px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', justifyContent: 'space-between' }}>
-              
+              <span>Available Lab Assets</span>
               <span style={{ color: '#38bdf8', textTransform: 'none' }}>Click tiles to select multiple assets</span>
             </div>
 
@@ -301,9 +299,14 @@ export default function App() {
                           <input type="text" placeholder="https://..." value={asset.imageUrl || ''} onChange={(e) => handleAssetUpdate(asset.id, 'imageUrl', e.target.value)} style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '6px', color: '#fff' }} />
                         </div>
                         {(asset.category.toLowerCase().includes('scope') || asset.category.toLowerCase().includes('scale') || asset.category.toLowerCase().includes('balance')) && (
-                          <div>
-                            <label style={{ display: 'block', fontSize: '11px', color: '#cbd5e1', marginBottom: '2px' }}>Notion Maintenance URL</label>
-                            <input type="text" value={asset.notionUrl || ''} onChange={(e) => handleAssetUpdate(asset.id, 'notionUrl', e.target.value)} style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '6px', color: '#fff' }} />
+                          <div style={{ marginTop: '4px', padding: '8px', backgroundColor: '#0f172a', borderRadius: '6px', border: '1px solid #334155' }}>
+                            <label style={{ display: 'block', fontSize: '11px', color: '#cbd5e1', marginBottom: '2px' }}>Notion Maintenance Record URL</label>
+                            <input type="text" value={asset.notionUrl || ''} onChange={(e) => handleAssetUpdate(asset.id, 'notionUrl', e.target.value)} style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '6px', padding: '6px', color: '#fff', fontSize: '11px' }} />
+                            {asset.notionUrl && (
+                              <a href={asset.notionUrl} target="_blank" rel="noreferrer" style={{ fontSize: '11px', color: '#60a5fa', textDecoration: 'underline', marginTop: '6px', display: 'inline-block' }}>
+                                Open Maintenance Entry in Notion ↗
+                              </a>
+                            )}
                           </div>
                         )}
                       </div>
@@ -311,7 +314,7 @@ export default function App() {
                   ))}
                 </div>
               ) : (
-                <p style={{ fontSize: '13px', color: '#94a3b8' }}>Select items from the grid to edit their details or upload photos.</p>
+                <p style={{ fontSize: '13px', color: '#94a3b8' }}>Select items from the grid to edit details, upload photos, or access Notion maintenance links.</p>
               )}
             </div>
           ) : (
@@ -330,9 +333,9 @@ export default function App() {
                           <div style={{ fontSize: '11px', color: '#93c5fd' }}>{[asset.brand, asset.model].filter(Boolean).join(' · ')}</div>
                         )}
                         <div style={{ fontSize: '11px', color: '#94a3b8' }}>📍 Station: {asset.location}</div>
-                        {(asset.category.toLowerCase().includes('scope') || asset.category.toLowerCase().includes('scale') || asset.category.toLowerCase().includes('balance')) && (
-                          <a href={asset.notionUrl || 'https://notion.so'} target="_blank" rel="noreferrer" style={{ fontSize: '11px', color: '#60a5fa', textDecoration: 'underline', marginTop: '4px', display: 'inline-block' }}>
-                            
+                      </div>
+                    ))}
+                  </div>
 
                   {bookingSuccess ? (
                     <div style={{ backgroundColor: '#064e3b', border: '1px solid #059669', padding: '16px', borderRadius: '8px' }}>
