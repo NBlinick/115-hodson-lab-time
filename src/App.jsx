@@ -332,12 +332,7 @@ export default function App() {
                         <div style={{ fontSize: '11px', color: '#94a3b8' }}>📍 Station: {asset.location}</div>
                         {(asset.category.toLowerCase().includes('scope') || asset.category.toLowerCase().includes('scale') || asset.category.toLowerCase().includes('balance')) && (
                           <a href={asset.notionUrl || 'https://notion.so'} target="_blank" rel="noreferrer" style={{ fontSize: '11px', color: '#60a5fa', textDecoration: 'underline', marginTop: '4px', display: 'inline-block' }}>
-                            View Notion Maintenance Records ↗
-                          </a>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                            
 
                   {bookingSuccess ? (
                     <div style={{ backgroundColor: '#064e3b', border: '1px solid #059669', padding: '16px', borderRadius: '8px' }}>
