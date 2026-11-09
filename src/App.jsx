@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 // Target Google Calendar ID for "115 Hodson Lab Time"
 const GCAL_TARGET_ID = "umn.edu_utg0nurqmmirg5udgvi2dim1gs@group.calendar.google.com";
+const LIVE_CALENDAR_URL = `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(GCAL_TARGET_ID)}&ctz=America%2FChicago`;
 
 const DEFAULT_LAB_ASSETS = [
   { id: 'scope-1', name: 'Leica EZ4 W Stereo Scope', brand: 'Leica', model: 'EZ4 W', category: 'Microscope', location: 'Station 1A (North Wall)', notionUrl: 'https://notion.so', imageUrl: '' },
@@ -16,7 +17,6 @@ const DEFAULT_LAB_ASSETS = [
   { id: 'seat-2b', name: 'Bench Seat 2B', brand: 'Labconco', model: 'Ergonomic Stool', category: 'Seat', location: 'Center Bench Row 2', notionUrl: '', imageUrl: '' }
 ];
 
-// Explicit Sorting Priority: Microscopes (1) -> Scales (2) -> Sinks (3) -> Ovens (4) -> Seats (5) -> Other (6)
 function getLabCategoryRank(category) {
   const c = (category || '').toLowerCase();
   if (c.includes('scope') || c.includes('microscope')) return 1;
@@ -178,12 +178,22 @@ export default function App() {
           </p>
         </div>
 
-        <button 
-          onClick={() => setIsAdminMode(!isAdminMode)}
-          style={{ padding: '8px 16px', backgroundColor: isAdminMode ? '#78350f' : '#1e293b', color: isAdminMode ? '#fde68a' : '#cbd5e1', border: '1px solid #475569', cursor: 'pointer', borderRadius: '8px', fontSize: '14px' }}
-        >
-          {isAdminMode ? 'Exit Admin Mode' : 'Admin & Photo Editor'}
-        </button>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <a
+            href={LIVE_CALENDAR_URL}
+            target="_blank"
+            rel="noreferrer"
+            style={{ padding: '8px 16px', backgroundColor: '#0284c7', color: '#ffffff', textDecoration: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold' }}
+          >
+            📅 View Live Calendar ↗
+          </a>
+          <button 
+            onClick={() => setIsAdminMode(!isAdminMode)}
+            style={{ padding: '8px 16px', backgroundColor: isAdminMode ? '#78350f' : '#1e293b', color: isAdminMode ? '#fde68a' : '#cbd5e1', border: '1px solid #475569', cursor: 'pointer', borderRadius: '8px', fontSize: '14px' }}
+          >
+            {isAdminMode ? 'Exit Admin Mode' : 'Admin & Photo Editor'}
+          </button>
+        </div>
       </header>
 
       {!notionConnected && (
@@ -193,7 +203,6 @@ export default function App() {
       )}
 
       <main style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
-        {/* Left Column: Sorted Asset Tile Grid */}
         <section>
           <div style={{ backgroundColor: '#1e293b', padding: '16px', borderRadius: '12px', marginBottom: '16px', display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center' }}>
             <input 
@@ -275,7 +284,6 @@ export default function App() {
           </div>
         </section>
 
-        {/* Right Column: Multi-Asset Reservation & Admin Panel */}
         <section style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '16px', padding: '20px', height: 'fit-content' }}>
           {isAdminMode ? (
             <div>
