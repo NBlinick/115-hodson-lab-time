@@ -134,10 +134,9 @@ export default function App() {
 
     const links = selectedAssets.map((asset) => {
       const title = encodeURIComponent(`${asset.name}${asset.model ? ` (${asset.model})` : ''}`);
-      const details = encodeURIComponent(
-        `Researcher: ${userName} (${userEmail})\nAsset: ${asset.name}\nBrand & Model: ${asset.brand || 'N/A'} ${asset.model || ''}\nCategory: ${asset.category}\nStation Location: ${asset.location}\nDuration: ${startDate} ${startTime} to ${finalEndDate} ${endTime}\nNotes: ${notes}
+      const details = encodeURIComponent(Researcher: ${userName} (${userEmail})\nAsset: ${asset.name}\nBrand & Model: ${asset.brand || 'N/A'} ${asset.model || ''}\nCategory: ${asset.category}\nStation Location: ${asset.location}\nDuration: ${startDate} ${startTime} to ${finalEndDate} ${endTime}\nNotes: ${notes}
       );
-      const location = encodeURIComponent(`115 Hodson Lab - ${asset.location}`);
+      const location = encodeURIComponent(115 Hodson Lab - ${asset.location}`);
 
       return {
         assetName: asset.name,
